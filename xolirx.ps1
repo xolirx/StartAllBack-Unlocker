@@ -1,87 +1,45 @@
-param(
-    [switch]$Restore
-)
-
-$ErrorActionPreference = "Stop"
-
-function Write-Color {
-    param($Message, $Color = "White")
-    Write-Host $Message -ForegroundColor $Color
-}
-
-if ($Restore) {
-    Write-Color "[*] Восстановление..." "Cyan"
-    $paths = @(
-        "$Env:LocalAppData\StartAllBack\StartAllBackX64.dll"
-        "$Env:ProgramFiles\StartAllBack\StartAllBackX64.dll"
-        "${Env:ProgramFiles(x86)}\StartAllBack\StartAllBackX64.dll"
-    )
-    foreach ($path in $paths) {
-        if (Test-Path "$path.bak") {
-            Copy-Item "$path.bak" $path -Force
-            Write-Color "[✓] Восстановлено: $path" "Green"
-        }
-    }
-    taskkill /f /im explorer.exe 2>$null
-    Start-Process explorer
-    Write-Color "[✓] Готово! Explorer перезапущен." "Green"
-    exit 0
-}
-
-Write-Color "[*] StartAllBack Активатор" "Cyan"
-Write-Color "[*] Завершаю процессы..." "Yellow"
-
 Stop-Process -Name StartAllBackCfg -ErrorAction SilentlyContinue -Force
 taskkill /f /im explorer.exe 2>$null | Out-Null
 
-$paths = @(
-    "$Env:LocalAppData\StartAllBack\StartAllBackX64.dll"
-    "$Env:ProgramFiles\StartAllBack\StartAllBackX64.dll"
-    "${Env:ProgramFiles(x86)}\StartAllBack\StartAllBackX64.dll"
+$relativePath = "StartAllBack\StartAllBackX64.dll"
+$pathsToCheck = @(
+    "$Env:LocalAppData\$relativePath"
+    "$Env:ProgramFiles\$relativePath"
+    "${Env:ProgramFiles(x86)}\$relativePath"
 )
 
-$found = @()
-foreach ($path in $paths) {
-    if (Test-Path $path) {
-        $found += $path
-        Write-Color "[+] Найдено: $path" "Green"
+$existingPaths = @()
+foreach ($path in $pathsToCheck) {
+    if (Test-Path -Path $path -ErrorAction SilentlyContinue) {
+        $existingPaths += $path
     }
 }
 
-if ($found.Count -eq 0) {
-    Write-Color "[-] StartAllBack не найден! Установите программу." "Red"
+if ($existingPaths.Count -eq 0) {
     Start-Process explorer
     exit 1
 }
 
-$activated = 0
-foreach ($path in $found) {
-    Write-Color "[*] Активирую: $path" "Cyan"
+foreach ($originalPath in $existingPaths) {
+    $backupPath = "$originalPath.bak"
     
-    if (-not (Test-Path "$path.bak")) {
-        Copy-Item $path "$path.bak" -Force
-        Write-Color "[+] Бэкап создан" "Green"
+    if (-not (Test-Path -Path $backupPath -ErrorAction SilentlyContinue)) {
+        Copy-Item -Path $originalPath -Destination $backupPath -Force
     }
     
-    $bytes = [System.IO.File]::ReadAllBytes("$path.bak")
-    $hex = ($bytes | ForEach-Object { $_.ToString('X2') }) -join ' '
+    $sourceFile = if (Test-Path $backupPath) { $backupPath } else { $originalPath }
+    $bytes = [System.IO.File]::ReadAllBytes($sourceFile)
     
-    $old = '\b48 89 5C 24 08 55 56 57 48 8D AC 24 70 FF FF FF\b'
-    $new = '67 C7 01 01 00 00 00 B8 01 00 00 00 C3 90 90 90'
+    $hexString = ($bytes | ForEach-Object { $_.ToString('X2') }) -join ' '
     
-    if ($hex -match $old) {
-        $newHex = $hex -replace $old, $new
-        $newBytes = $newHex -split ' ' | ForEach-Object { [Convert]::ToByte($_, 16) }
-        [System.IO.File]::WriteAllBytes($path, $newBytes)
-        Write-Color "[✓] Активация успешна!" "Green"
-        $activated++
-    } else {
-        Write-Color "[-] Уже активирован или версия не подходит" "Yellow"
+    $oldPattern = '\b48 89 5C 24 08 55 56 57 48 8D AC 24 70 FF FF FF\b'
+    $newBytesPattern = '67 C7 01 01 00 00 00 B8 01 00 00 00 C3 90 90 90'
+    
+    if ($hexString -match $oldPattern) {
+        $newHexString = $hexString -replace $oldPattern, $newBytesPattern
+        $newBytes = $newHexString -split ' ' | ForEach-Object { [Convert]::ToByte($_, 16) }
+        [System.IO.File]::WriteAllBytes($originalPath, $newBytes)
     }
 }
 
 Start-Process explorer
-Write-Color "[✓] Готово! Активировано: $activated файлов" "Green"
-
-if ($activated -eq 0) { exit 1 }
-exit 0
