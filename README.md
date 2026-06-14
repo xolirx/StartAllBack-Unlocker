@@ -1,21 +1,78 @@
-# 🚀 StartAllBack Активатор
+# 🚀 XOLIRX - StartAllBack Unlocker
 
-**Рабочая активация StartAllBack одной кнопкой**
-
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Windows](https://img.shields.io/badge/Windows-10%2F11-blue.svg)](https://microsoft.com/windows)
-[![PowerShell](https://img.shields.io/badge/PowerShell-5.1+-blue.svg)](https://github.com/PowerShell/PowerShell)
+Активация StartAllBack одной командой
 
 ---
 
-## 🚀 Как активировать
+## 📖 ИНСТРУКЦИЯ ПО АКТИВАЦИИ
 
-1. Нажмите правой кнопкой на **XOLIRX_ACTIVATION.bat**
-2. Выберите **"Запуск от имени администратора"**
-3. Готово!
+### Шаг 1. Откройте PowerShell
 
-## 🔄 Восстановление
+Нажмите `Win + R`, введите `powershell`, нажмите `Enter`
 
-Запустите **XOLIRX_RESTORE.bat** от администратора
+### Шаг 2. Перейдите в папку с файлом
 
-## ⭐ Поставьте звезду, если помогло!
+```powershell
+cd C:\Users\user\Desktop\xolirx
+```
+
+*(Замените путь на ваш, где лежит `xolirx.ps1`)*
+
+### Шаг 3. Запустите активацию
+
+```powershell
+Start-Process powershell -Verb RunAs -ArgumentList "-ExecutionPolicy Bypass -File `"$PWD\xolirx.ps1`""
+```
+
+### Шаг 4. Подтвердите
+
+Нажмите **"Да"** во всплывающем окне
+
+### Шаг 5. Готово!
+
+Активация выполнена ✅
+
+---
+
+## 🔄 ВОССТАНОВЛЕНИЕ
+
+Если нужно вернуть оригинал:
+
+```powershell
+Start-Process powershell -Verb RunAs -ArgumentList "-ExecutionPolicy Bypass -File `"$PWD\xolirx.ps1`" -Restore"
+```
+
+---
+
+## ⚡ БЫСТРЫЙ ЗАПУСК (одной строкой)
+
+```powershell
+cd C:\Users\user\Desktop\xolirx; Start-Process powershell -Verb RunAs -ArgumentList "-ExecutionPolicy Bypass -File `"$PWD\xolirx.ps1`""
+```
+
+---
+
+## 📁 ФАЙЛЫ
+
+| Файл | Описание |
+|------|----------|
+| `xolirx.ps1` | Основной скрипт активации |
+
+---
+
+## ⚠️ ТРЕБОВАНИЯ
+
+- Windows 10 / 11 (x64)
+- Установленный StartAllBack
+- Права администратора
+
+---
+
+## ⭐ Поддержите проект
+
+Поставьте звезду на GitHub, если помогло!
+
+---
+
+**XOLIRX** | Только для образовательных целей
+```
